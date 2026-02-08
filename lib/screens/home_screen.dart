@@ -150,9 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Icons.notifications_none_outlined,
               color: goldColor,
             ),
-            onPressed:
-                () =>
-                    _navigateTo(const AccountScreen()), // Sementara ke Account
+            onPressed: () => _navigateTo(const AccountScreen()),
           ),
           const SizedBox(width: 8),
         ],

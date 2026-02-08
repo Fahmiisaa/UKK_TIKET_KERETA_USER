@@ -26,20 +26,25 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  // --- LOGIKA LOGIN & NAVIGASI BERDASARKAN ROLE ---
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      final success = await context.read<AuthProvider>().login(
+      final auth = context.read<AuthProvider>();
+
+      final success = await auth.login(
         _usernameController.text.trim(),
         _passwordController.text.trim(),
       );
 
       if (success && mounted) {
-        final authProvider = context.read<AuthProvider>();
-        if (authProvider.isAdmin) {
+        // Logika Pengalihan Halaman
+        if (auth.isAdmin) {
+          // Jika role == 'admin', arahkan ke Dashboard Petugas
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
           );
         } else {
+          // Jika role != 'admin', arahkan ke Home Pelanggan
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const HomeScreen()),
           );
@@ -50,6 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Gunakan watch untuk memantau status loading dan error
     final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
@@ -108,6 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 48),
 
+                  // Input Username
                   _buildTextField(
                     controller: _usernameController,
                     label: 'Username',
@@ -118,6 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Input Password
                   _buildTextField(
                     controller: _passwordController,
                     label: 'Password',
@@ -133,6 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         (v) => v!.isEmpty ? 'Please enter password' : null,
                   ),
 
+                  // Error Message
                   if (authProvider.error != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 16),
@@ -141,6 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: GoogleFonts.montserrat(
                           color: Colors.redAccent,
                           fontSize: 13,
+                          fontWeight: FontWeight.w500,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -148,6 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 32),
 
+                  // Login Button
                   SizedBox(
                     height: 55,
                     child: ElevatedButton(
@@ -183,6 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 24),
 
+                  // Register Redirect
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -191,12 +203,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: GoogleFonts.montserrat(color: Colors.grey[600]),
                       ),
                       GestureDetector(
-                        onTap:
-                            () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const RegisterScreen(),
-                              ),
+                        onTap: () {
+                          authProvider
+                              .clearError(); // Bersihkan error sebelum pindah
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const RegisterScreen(),
                             ),
+                          );
+                        },
                         child: Text(
                           'Register Now',
                           style: GoogleFonts.montserrat(
@@ -217,6 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // Widget Helper untuk TextField
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -230,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return TextFormField(
       controller: controller,
       obscureText: isPassword ? obscureText : false,
-      style: GoogleFonts.montserrat(color: Colors.black), // TEKS INPUT HITAM
+      style: GoogleFonts.montserrat(color: Colors.black),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
